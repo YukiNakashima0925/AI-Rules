@@ -1,0 +1,5 @@
+# 强制文本文件以 LF 存储，避免 Windows 上 CRLF 造成无意义 diff
+* text=auto eol=lf
+
+# Markdown 一律 LF
+*.md text eol=lf
