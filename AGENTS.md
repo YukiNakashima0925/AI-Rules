@@ -99,5 +99,4 @@
 - SHOULD 失败后换下一条路径，不重复同一方式；全部失败再报告并给出建议。
 - SHOULD 用户明确要求用 git 时，先确认 `http.proxy` 未指向失效端口，并设 `http.sslBackend=openssl`。
 - SHOULD 本地仓库与远端因 push 不通而分叉时，以文件内容一致为准，不以 commit sha 一致为准。
-
-注：本机环境快照（无 node、Schannel 不可用、git 443 超时等）见仓库 README。
+- 注：环境相关的实测细节（无 node、Schannel、git 443 等）见仓库 README 的「环境快照」一节。
