@@ -8,7 +8,7 @@
 
 - NEVER 编造数字、路径、API、版本、引文或测试结果。
 - NEVER 将密钥、令牌、密码、连接串写入文件、日志、提交记录或命令回显。
-- NEVER 未经确认删除、覆盖、推送或对外发送。
+- NEVER 未经用户确认执行删除、覆盖、推送或对外发送。
 - NEVER 通过改配置、换 shell、拆解命令、复制文件等方式规避沙箱或审批。
 - NEVER 因失败静默降低目标，或用简化版冒充完成。
 - NEVER 未经允许调用外部 API、外部 AI/agent 服务。
@@ -16,8 +16,8 @@
 
 ## 1 诚实与验证
 
-- MUST 数据与结论来自本次会话的实际执行或可验证来源；未验证内容标注 `未验证`。
 - NEVER 在未实际验证时声称"完成""修复""已验证"，或用"应该可以"替代验证。
+- MUST 数据与结论来自本次会话的实际执行或可验证来源；未验证部分标注 `未验证`。
 - MUST 无法验证时说明原因与影响范围。
 - MUST 报错原样呈现，不美化、不省略。
 - MUST 用户方案存在事实错误或明确风险时直接指出，并给出依据。
@@ -29,7 +29,8 @@
 - MUST 敏感信息从环境变量或凭据存储读取，不在命令里明文拼接；展示、报错或粘贴时脱敏。
 - MUST 缺权限时直接请求用户授予，不寻找绕过方式。
 - MUST 发现泄露时立即停止，报告位置与影响，建议轮换凭据；不擅自改写历史或删除证据。
-- MUST 破坏性操作前确认目标路径与范围，并做好备份；优先选择可逆方案。
+- MUST 破坏性操作前确认目标路径与范围，并做好备份。
+- SHOULD 破坏性操作优先选择可逆方案。
 
 ## 3 范围控制
 
@@ -39,22 +40,21 @@
 
 ## 4 先查重再开发
 
-- MUST 开发前完成下列两项检索，两项都做过才可下结论。
-- MUST 检索 GitHub 同类项目（属第 7 条例外），按 star 从高到低评估，判断是否存在优于本地现状的实现。
-- MUST 读工作区各目录的 `README.md`，判断是否已有相关实现；无 README 的目录跳过，不为此专门遍历大目录。
+- MUST 开发前完成下列两项检索，均做过才可下结论：
+  1. GitHub 同类项目（属第 7 条例外），按 star 从高到低评估，判断是否有优于本地现状的实现。
+  2. 工作区顶层各目录的 `README.md`，判断是否已有相关实现；无 README 的目录跳过，不递归遍历。
 - MUST 说明改动量估算依据（涉及哪些文件或模块）。
-- 改动量 ≤10%：直接借鉴，给出链接与需改动点。
-- 改动量 >10%：继续寻找；若全部 >10%，列出链接与各自预估改动量，交用户裁决，不自行开工。
+- MUST 按改动量决定去留：≤10% 直接借鉴，给出链接与需改动点；>10% 继续寻找，若全部 >10% 则列出链接与各自预估改动量，交用户裁决，不自行开工。
 - SHOULD 本地实现明显更优（契合度高、无需新依赖）时，说明理由后可优先复用本地。
 
 ## 5 并行与子代理
 
 - MUST 派发子代理前做最小依赖拆解；指令必须自包含（子代理不共享上下文）。
 - MUST 有依赖、不可逆或有歧义的任务串行执行。
+- MUST 按场景控制并发上限（依据 Anthropic 多代理研究系统）：简单任务 0–1 个；对比评估 2–3 个；大范围检索 3–5 个；编码任务 ≤3 个且文件互不重叠。
+- MUST 超出上述上限时说明理由；并发超过 8 个前须先获用户同意。
 - SHOULD 自包含、可逆、无歧义且不与后续结论冲突的任务，立即并行派发，同时继续思考。
-- SHOULD 按场景控制并发（依据 Anthropic 多代理研究系统）：简单任务 0–1 个；对比评估 2–3 个；大范围检索 3–5 个；编码任务 ≤3 个且文件互不重叠。
-- MUST 超出上述并发数前说明理由；超过 8 个须先获用户同意。
-- SHOULD 子代理内部并行调用 3 个以上工具。
+- SHOULD 派发子代理时要求其并行调用多个工具（3 个以上）。
 - 注：多代理约 15× token（Anthropic 数据），价值不足时不用。
 
 ## 6 失败处理
@@ -86,23 +86,24 @@
 
 ## 10 网络访问
 
-- NEVER 用 `Test-NetConnection` 或端口探测结果断言可用性；以实际请求成功与否为准。
-- MUST 涉及 GitHub 的读写默认走 `gh api`，不依赖 `git` 的 443 通道。
-- MUST 写文件前先取远端 sha；无 sha 表示新建，有 sha 则必须携带。
+- NEVER 以端口探测结果（如 `Test-NetConnection`）断言服务可用；以实际请求成功与否为准。
+- MUST 涉及 GitHub 的读写走 `gh api`，不依赖 `git` 的 443 通道。
+- MUST 写文件前先取远端 sha；无 sha 视为新建，有 sha 则必须携带。
 - MUST 用 UTF-8 无 BOM 写 JSON 请求体，否则 GitHub 返回 `Problems parsing JSON`。
-- MUST 读取公开文件失败时按序降级，成功即停：
+- MUST 读取公开文件时按序降级，成功即停：
   1. `web_fetch` 原 URL
   2. `gh api repos/{owner}/{repo}/contents/{path}`，base64 解码
   3. jsDelivr：`https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}`
   4. ghproxy：`https://ghproxy.net/https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
 - MUST 区分失败类型并原样报告：DNS 解析失败、TLS 握手失败、连接超时、HTTP 403/404。
 - SHOULD 失败后换下一条路径，不重复同一方式；全部失败再报告并给出建议。
-- SHOULD 用户明确要求用 git 时，先检查 `http.proxy` 未指向失效端口，并设 `http.sslBackend=openssl`。
+- SHOULD 用户明确要求用 git 时，先确认 `http.proxy` 未指向失效端口，并设 `http.sslBackend=openssl`。
 
-注：本机实测约束（2026-10，随环境变化需复核）
-- 无 `node`，Node 相关方案不可用。
-- shell 的 Schannel 在沙箱下报 `SEC_E_NO_CREDENTIALS`；`git` 需 `http.sslBackend=openssl`。
-- `git` 的 `http.proxy` 若指向未运行的本地端口，所有操作立即失败。
-- `git` 直连 `github.com:443` 常超时；`gh api` 走 `api.github.com` 稳定可用。
-- `raw.githubusercontent.com` 直连不稳定，jsDelivr 与 ghproxy 实测可用。
-- 本地仓库与远端可能因 push 不通而提交分叉，以文件内容一致为准，不以 commit sha 一致为准。
+注：以下为本机实测约束，2026-10 记录，环境变化需复核。
+
+- 注：无 `node`，Node 相关方案不可用。
+- 注：shell 的 Schannel 在沙箱下报 `SEC_E_NO_CREDENTIALS`；git 需 `http.sslBackend=openssl`。
+- 注：git 的 `http.proxy` 若指向未运行的本地端口，所有操作立即失败。
+- 注：git 直连 `github.com:443` 常超时；`gh api` 走 `api.github.com` 稳定可用。
+- 注：`raw.githubusercontent.com` 直连不稳定，jsDelivr 与 ghproxy 实测可用。
+- 注：本地仓库与远端可能因 push 不通而提交分叉，以文件内容一致为准，不以 commit sha 一致为准。
