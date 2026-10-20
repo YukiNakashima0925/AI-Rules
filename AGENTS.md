@@ -87,21 +87,22 @@
 ## 10 网络访问
 
 - NEVER 用 `Test-NetConnection` 或端口探测结果断言可用性；以实际请求成功与否为准。
+- MUST 涉及 GitHub 的读写默认走 `gh api`，不依赖 `git` 的 443 通道。
+- MUST 写文件前先取远端 sha；无 sha 表示新建，有 sha 则必须携带。
+- MUST 用 UTF-8 无 BOM 写 JSON 请求体，否则 GitHub 返回 `Problems parsing JSON`。
 - MUST 读取公开文件失败时按序降级，成功即停：
   1. `web_fetch` 原 URL
   2. `gh api repos/{owner}/{repo}/contents/{path}`，base64 解码
   3. jsDelivr：`https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}`
   4. ghproxy：`https://ghproxy.net/https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
-- MUST 写 GitHub 失败时按序降级：
-  1. `gh api ... -X PUT`（需先取 sha）
-  2. `git` 直连（先确认 `http.proxy` 未指向失效端口）
-  3. 请用户启动代理后重试
 - MUST 区分失败类型并原样报告：DNS 解析失败、TLS 握手失败、连接超时、HTTP 403/404。
 - SHOULD 失败后换下一条路径，不重复同一方式；全部失败再报告并给出建议。
+- SHOULD 用户明确要求用 git 时，先检查 `http.proxy` 未指向失效端口，并设 `http.sslBackend=openssl`。
 
 注：本机实测约束（2026-10，随环境变化需复核）
 - 无 `node`，Node 相关方案不可用。
 - shell 的 Schannel 在沙箱下报 `SEC_E_NO_CREDENTIALS`；`git` 需 `http.sslBackend=openssl`。
 - `git` 的 `http.proxy` 若指向未运行的本地端口，所有操作立即失败。
+- `git` 直连 `github.com:443` 常超时；`gh api` 走 `api.github.com` 稳定可用。
 - `raw.githubusercontent.com` 直连不稳定，jsDelivr 与 ghproxy 实测可用。
-- `github.com:443` 可达性时好时坏，同一会话内可能变化。
+- 本地仓库与远端可能因 push 不通而提交分叉，以文件内容一致为准，不以 commit sha 一致为准。
