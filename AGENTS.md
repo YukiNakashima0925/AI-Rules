@@ -87,7 +87,7 @@
 ## 10 网络访问
 
 - NEVER 以端口探测结果（如 `Test-NetConnection`）断言服务可用；以实际请求成功与否为准。
-- MUST 涉及 GitHub 的读写走 `gh api`，不依赖 `git` 的 443 通道。
+- MUST GitHub 读写默认走 `gh api`，不依赖 `git` 的 443 通道；仅当按第 11 条探测确认 git 可用时改用 `git`。
 - MUST 写文件前先取远端 sha；无 sha 视为新建，有 sha 则必须携带。
 - MUST 用 UTF-8 无 BOM 写 JSON 请求体，否则 GitHub 返回 `Problems parsing JSON`。
 - MUST 读取公开文件时按序降级，成功即停：
@@ -100,3 +100,14 @@
 - SHOULD 用户明确要求用 git 时，先确认 `http.proxy` 未指向失效端口，并设 `http.sslBackend=openssl`。
 - SHOULD 本地仓库与远端因 push 不通而分叉时，以文件内容一致为准，不以 commit sha 一致为准。
 - 注：环境相关的实测细节（无 node、Schannel、git 443 等）见仓库 README 的「环境快照」一节。
+
+## 11 仓库上传
+
+- MUST 上传仓库的本地副本统一放在 `C:\repos\` 下并按类别归档：`AI-Rules`（已有，独立存放）、`pure-ai-projects`（纯 AI 项目）、`ai-assisted-projects`（AI 辅助项目）、`personal-projects`（个人独立项目）。
+- MUST 类别归属不明时先问用户，不自行猜测。
+- MUST 上传前以真实请求探测通道（对目标远端 `git ls-remote`，失败或超时即判不可用），按结果选路：git 可用时用 `git push`，适合多文件与带历史仓库；不可用时按第 10 条走 `gh api`，适合单文件或少量文件更新。
+- MUST 通道选择与探测结果一并报告。
+- SHOULD 远端不存在时先 `gh repo create` 再推送，远端名与本地目录名一致。
+- SHOULD 推送前检查 `.gitignore`，防敏感或临时文件入库。
+- 注：多文件仓库在 git 不可用时逐文件走 `gh api` 代价高，此时建议用户开启代理后改走 git。
+- 注：在 `C:\repos` 下新建类别目录若被沙箱拒绝，转为请用户手动创建。
