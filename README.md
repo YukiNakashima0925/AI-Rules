@@ -4,7 +4,7 @@
 
 ## 文件
 
-- [`AGENTS.md`](AGENTS.md) — 守则正文，共 12 组
+- [`AGENTS.md`](AGENTS.md) — 守则正文，共 13 组
 
 ## 使用方式
 
@@ -56,6 +56,7 @@
 | 9 | 沟通与风格 |
 | 10 | 网络访问 |
 | 11 | 仓库上传 |
+| 12 | 上下文控制 |
 
 ## 仓库分类
 
@@ -87,7 +88,7 @@
 
 | 约束 | 说明 |
 |---|---|
-| 无 `node` | 本机未安装 Node.js，Node 相关网络方案（如自定义 DNS）不可用 |
+| node/python 在 DSH 运行时内 | 不在 PATH；绝对路径调用：`%DSH_HOME%\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe`（v24，支持 zstd）、同级 `python\python.exe` |
 | Schannel 不可用 | shell 中报 `SEC_E_NO_CREDENTIALS`；git 需设 `http.sslBackend=openssl` |
 | git 代理敏感 | `http.proxy` 若指向未运行的本地端口，所有 git 操作立即失败 |
 | git 443 常超时 | 直连 `github.com:443` 不可靠；`gh api` 走 `api.github.com` 稳定可用 |
