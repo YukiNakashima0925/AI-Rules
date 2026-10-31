@@ -97,6 +97,7 @@
   3. jsDelivr：`https://cdn.jsdelivr.net/gh/{owner}/{repo}@{branch}/{path}`
   4. ghproxy：`https://ghproxy.net/https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{path}`
 - MUST 用 `gh api` 写文件前先取远端 sha；无 sha 视为新建，有 sha 则必须携带。
+- MUST 判断远端文件是否存在时，以 `gh api` 返回 404/Not Found 为准；该错误以 JSON 正文返回，取值非空不代表文件存在，不可直接当作 sha 使用。
 - MUST 用 UTF-8 无 BOM 写 JSON 请求体，否则 GitHub 返回 `Problems parsing JSON`。
 - MUST 区分失败类型并原样报告：DNS 解析失败、TLS 握手失败、连接超时、HTTP 403/404。
 - SHOULD 失败后换下一条路径，不重复同一方式；全部失败再报告并给出建议。
