@@ -5,6 +5,7 @@
 ## 文件
 
 - [`AGENTS.md`](AGENTS.md) — 守则正文，共 13 组
+- [`CHANGELOG.md`](CHANGELOG.md) — 维护日志，按日期记录规则变更与原因
 
 ## 使用方式
 
